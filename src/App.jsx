@@ -2,40 +2,58 @@ import { useState } from 'react'
 import TextInput from './components/TextInput'
 import ResultsTabs from './components/ResultsTabs'
 import { getMockResults } from './mockData'
+import { generateStudyMaterial } from './api'
+import CONFIG from './config'
 
 export default function App() {
   const [results, setResults] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [statusNote, setStatusNote] = useState('')
 
-  function handleAnalyze(text) {
+  async function handleAnalyze(text) {
     setError('')
-    if (!text.trim()) {
+    setStatusNote('')
+    
+    const cleanedText = text.trim()
+    if (!cleanedText) {
       setError('Please paste some text to analyze.')
       return
     }
 
     setLoading(true)
-    // Simulate AI processing delay
-    setTimeout(() => {
-      try {
-        const mock = getMockResults(text)
-        if (mock) {
-          setResults(mock)
-        } else {
-          setError('Could not analyze the text. Please try again.')
+    
+    try {
+      // Step 1: Check for API Key
+      if (!CONFIG.API_KEY) {
+        console.warn('API Key missing, using mock data.');
+        const mock = getMockResults(cleanedText);
+        setResults(mock);
+        setStatusNote('Set your API key in .env for real AI responses');
+      } else {
+        // Step 2: Try real AI
+        try {
+          const aiResults = await generateStudyMaterial(cleanedText);
+          setResults(aiResults);
+        } catch (aiErr) {
+          console.error('AI API failed, falling back to mock:', aiErr);
+          const mock = getMockResults(cleanedText);
+          setResults(mock);
+          setStatusNote('AI unavailable, showing demo');
         }
-      } catch {
-        setError('Something went wrong. Please try again.')
-      } finally {
-        setLoading(false)
       }
-    }, 1200)
+    } catch (err) {
+      console.error('Processing error:', err);
+      setError('Could not process the text. Please try again.');
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleReset() {
     setResults(null)
     setError('')
+    setStatusNote('')
     setLoading(false)
   }
 
@@ -56,14 +74,19 @@ export default function App() {
           {!results ? (
             <TextInput onSubmit={handleAnalyze} loading={loading} error={error} />
           ) : (
-            <>
+            <div className="results-container">
+              {statusNote && (
+                <div className="status-badge">
+                  <span>ℹ️ {statusNote}</span>
+                </div>
+              )}
               <ResultsTabs results={results} />
               <div className="action-bar">
                 <button className="btn btn-outline" onClick={handleReset}>
                   Analyze new text
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
       </main>
