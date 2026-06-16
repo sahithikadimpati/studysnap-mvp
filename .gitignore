@@ -29,3 +29,9 @@ dist-ssr
 
 # Vite specific
 .vite
+
+# SQLite database files
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
