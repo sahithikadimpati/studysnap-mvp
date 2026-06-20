@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { initDB } = require('./db');
 const studyRoutes = require('./routes/study');
+const authRoutes = require('./routes/auth');
 const { requestLogger } = require('./middleware/logger');
 
 const app = express();
@@ -40,6 +41,9 @@ app.post('/api/health', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// Mount Auth Routes
+app.use('/api/auth', authRoutes);
 
 // Mount Study Routes (both /api/study/generate and /api/generate)
 // This elegant mounting satisfies both specifications and current frontend clients.
