@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const { initDB } = require('./db');
 const studyRoutes = require('./routes/study');
 const authRoutes = require('./routes/auth');
+const historyRoutes = require('./routes/history');
+const uploadRoutes = require('./routes/upload');
 const { requestLogger } = require('./middleware/logger');
 
 const app = express();
@@ -45,8 +47,13 @@ app.get('/api/health', (req, res) => {
 // Mount Auth Routes
 app.use('/api/auth', authRoutes);
 
+// Mount History Routes
+app.use('/api/history', historyRoutes);
+
+// Mount Upload Routes
+app.use('/api/upload', uploadRoutes);
+
 // Mount Study Routes (both /api/study/generate and /api/generate)
-// This elegant mounting satisfies both specifications and current frontend clients.
 app.use('/api', studyRoutes);
 app.use('/api/study', studyRoutes);
 
